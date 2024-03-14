@@ -40,3 +40,4 @@ next-env.d.ts
 *.lock
 
 /.vscode
+.vscode/settings.json
