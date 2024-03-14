@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `files` MODIFY `label` VARCHAR(191) NOT NULL DEFAULT '';

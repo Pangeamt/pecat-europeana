@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+.tu-table-wrapper tr {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.review-literal {}
