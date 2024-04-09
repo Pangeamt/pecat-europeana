@@ -36,25 +36,23 @@ export const POST = async (req, res) => {
     const { user } = await auth();
     if (!user)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    const { tuId, review_literal, action } = await req.json();
+    const { tuId, reviewLiteral, action } = await req.json();
 
     const tu = await prisma.tu.findUnique({
       where: {
         id: tuId,
       },
     });
-    const data = {
-      human_review: true,
-    };
+    const data = {};
     if (action === "approve") {
       let Status = "NOT_REVIEWED";
-      if (tu.original_literal === review_literal || !review_literal) {
+      if (tu.srcLiteral === reviewLiteral || !reviewLiteral) {
         Status = "ORIGINAL_ACCEPTED";
       } else {
         Status = "EDITED";
       }
       data.Status = Status;
-      data.review_literal = review_literal;
+      data.reviewLiteral = reviewLiteral;
     } else if (action === "reject") {
       let Status = "REJECTED";
       data.Status = Status;

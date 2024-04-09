@@ -21,6 +21,7 @@ import {
   useDisclosure,
   Tooltip,
   Progress,
+  Spinner,
 } from "@nextui-org/react";
 
 import { capitalize } from "@/lib/utils";
@@ -75,7 +76,7 @@ const ProjectList = () => {
   const [page, setPage] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [files, setFiles] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [filterValue, setFilterValue] = React.useState("");
   const [selectedKeys, setSelectedKeys] = React.useState(new Set([]));
   const [visibleColumns, setVisibleColumns] = React.useState(
@@ -412,9 +413,10 @@ const ProjectList = () => {
           )}
         </TableHeader>
         <TableBody
-          emptyContent={"No files found"}
+          emptyContent={!isLoading ? "No files found" : " "}
           items={sortedItems}
           isLoading={isLoading}
+          loadingContent={<Spinner label="Loading..." />}
         >
           {(item) => (
             <TableRow key={item.id}>

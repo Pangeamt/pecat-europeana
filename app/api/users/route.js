@@ -4,6 +4,15 @@ import { generateSaltAndHash } from "@/lib/utils";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     description: Returns the list of all users
+ *     responses:
+ *       200:
+ *         description: A list of users
+ */
 export const GET = async (req, res) => {
   try {
     const { user } = await auth();

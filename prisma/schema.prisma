@@ -69,6 +69,7 @@ model File {
   id        String   @id @default(cuid())
   label     String?
   filename  String
+  filePath  String
   tus       Tu[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -79,26 +80,24 @@ model File {
 }
 
 model Tu {
-  id                     String   @id @default(cuid())
-  translation_literal_id Int
-  translation_id         Int
-  hash                   Int
-  original_literal       String
-  translated_literal     String
-  review_literal         String?
-  field_name             String
-  count                  Int
-  original_language_tag  String
-  used_language          String
-  target_language        String
-  human_review           Boolean?
-  translation_score      Int
-  detection_score        Int
-  File                   File?    @relation(fields: [fileId], references: [id])
-  fileId                 String?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-  Status                 Status   @default(NOT_REVIEWED)
+  id                      String  @id @default(cuid())
+  translationLiteralId    Int
+  translationId           Int
+  count                   Int
+  fieldName               String
+  shortFieldname          String
+  srcLiteral              String  @db.Text
+  translatedLiteral       String  @db.Text
+  reviewLiteral           String? @db.Text
+  sourceLanguage          String
+  targetLanguage          String
+  translationScorePercent Float
+
+  File      File?    @relation(fields: [fileId], references: [id])
+  fileId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Status    Status   @default(NOT_REVIEWED)
 
   @@map("tus")
 }

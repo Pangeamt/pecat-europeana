@@ -19,6 +19,7 @@ import {
   Textarea,
   Chip,
   Progress,
+  Spinner,
 } from "@nextui-org/react";
 
 import { capitalize } from "@/lib/utils";
@@ -31,10 +32,10 @@ import {
 import { uid } from "uid";
 
 const INITIAL_VISIBLE_COLUMNS = [
-  "original_literal",
-  "translated_literal",
-  "review_literal",
-  "translation_score",
+  "srcLiteral",
+  "translatedLiteral",
+  "reviewLiteral",
+  "translationScorePercent",
   "actions",
 ];
 
@@ -42,38 +43,32 @@ const columns = [
   { name: "ID", uid: "id", sortable: true },
   {
     name: "TRANSLATION LITERAL ID",
-    uid: "translation_literal_id",
+    uid: "translationLiteralId",
     sortable: true,
   },
-  { name: "TRANSLATION ID", uid: "translation_id", sortable: true },
-  // { name: "HASH", uid: "hash", sortable: true },
+  { name: "TRANSLATION ID", uid: "translationId", sortable: true },
+  { name: "COUNT", uid: "count", sortable: true },
+  { name: "FIELD NAME", uid: "fieldName", sortable: true },
+  { name: "SHORT FIELD NAME", uid: "shortFieldname", sortable: true },
+
   {
-    name: "ORIGINAL LITERAL",
-    uid: "original_literal",
+    name: "SRC LITERAL",
+    uid: "srcLiteral",
     sortable: true,
   },
   {
     name: "TRANSLATED LITERAL",
-    uid: "translated_literal",
+    uid: "translatedLiteral",
     sortable: true,
   },
   {
     name: "REVIEW LITERAL",
-    uid: "review_literal",
+    uid: "reviewLiteral",
     sortable: true,
   },
-  // { name: "FIELD NAME", uid: "field_name", sortable: true },
-  { name: "COUNT", uid: "count", sortable: true },
-  {
-    name: "ORIGINAL LANGUAGE TAG",
-    uid: "original_language_tag",
-    sortable: true,
-  },
-  // { name: "USED LANGUAGE", uid: "used_language", sortable: true },
-  { name: "TARGET LANGUAGE", uid: "target_language", sortable: true },
-  // { name: "HUMAN REVIEW", uid: "human_review", sortable: true },
-  { name: "TRANSLATION SCORE", uid: "translation_score", sortable: true },
-  { name: "DETECTION SCORE", uid: "detection_score", sortable: true },
+  { name: "SOURCE LANGUAGE", uid: "sourceLanguage", sortable: true },
+  { name: "TARGET LANGUAGE", uid: "targetLanguage", sortable: true },
+  { name: "TRANSLATION SCORE", uid: "translationScorePercent", sortable: true },
   { name: "STATUS", uid: "Status", sortable: true },
   { name: "ACTIONS", uid: "actions" },
 ];
@@ -87,7 +82,7 @@ const statusOptions = [
 
 const getWidthByColumn = (uid) => {
   switch (uid) {
-    case "review_literal":
+    case "reviewLiteral":
       return 500;
     default:
       return null;
@@ -184,7 +179,7 @@ const ProjectList = ({ fileId }) => {
     setIsLoading(true);
     await fetch(`/api/tus`, {
       method: "POST",
-      body: JSON.stringify({ tuId, review_literal: historyTus[tuId], action }),
+      body: JSON.stringify({ tuId, reviewLiteral: historyTus[tuId], action }),
     });
     fetchTus();
     setIsLoading(false);
@@ -209,12 +204,8 @@ const ProjectList = ({ fileId }) => {
     if (hasSearchFilter) {
       filteredTus = filteredTus.filter(
         (tu) =>
-          tu.original_literal
-            .toLowerCase()
-            .includes(filterValue.toLowerCase()) ||
-          tu.translated_literal
-            .toLowerCase()
-            .includes(filterValue.toLowerCase())
+          tu.srcLiteral.toLowerCase().includes(filterValue.toLowerCase()) ||
+          tu.translatedLiteral.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
 
@@ -254,9 +245,9 @@ const ProjectList = ({ fileId }) => {
     let text;
 
     switch (columnKey) {
-      case "review_literal":
-        text = user["translated_literal"];
-        if (user["review_literal"] !== null) text = user["review_literal"];
+      case "reviewLiteral":
+        text = user["translatedLiteral"];
+        if (user["reviewLiteral"] !== null) text = user["reviewLiteral"];
         return (
           <div
             css={{
@@ -549,10 +540,10 @@ const ProjectList = ({ fileId }) => {
           )}
         </TableHeader>
         <TableBody
-          emptyContent={"No tus found"}
+          emptyContent={!isLoading ? "No tus found" : " "}
           items={sortedItems}
           isLoading={isLoading}
-          // loadingContent={<Spinner label="Loading..." />}
+          loadingContent={<Spinner label="Loading..." />}
         >
           {(item) => (
             <TableRow key={item.id} className={getClassByStatus(item.Status)}>

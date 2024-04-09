@@ -4,6 +4,9 @@ import { pipeline } from "stream";
 import { promisify } from "util";
 import { uid } from "uid";
 const pump = promisify(pipeline);
+const axios = require("axios");
+const contentDisposition = require("content-disposition");
+const zlib = require("zlib");
 
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -69,6 +72,111 @@ export const POST = async (req, res) => {
         console.log(createMany);
       }
     }
+    return NextResponse.json({ status: "success" }, { status: 200 });
+  } catch (error) {
+    return NextResponse.error({ message: error.message }, { status: 401 });
+  }
+};
+
+export const PUT = async (req, res) => {
+  try {
+    const { user } = await auth();
+    const { url } = await req.json();
+    if (!user)
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    // find user
+    const userAuth = await prisma.user.findUnique({
+      where: {
+        email: user.email,
+      },
+    });
+
+    await axios({
+      method: "get",
+      url,
+      responseType: "stream",
+    })
+      .then(function (response) {
+        let fileName = "downloaded-file";
+        const contentDispositionHeader =
+          response.headers["content-disposition"];
+        if (contentDispositionHeader) {
+          fileName = contentDisposition.parse(contentDispositionHeader)
+            .parameters.filename;
+        }
+        // create folder
+        const newFolder = new Date().getTime();
+        if (!fs.existsSync(`./public/files/${newFolder}`)) {
+          fs.mkdirSync(`./public/files/${newFolder}`);
+        }
+
+        const downloadPath = `./public/files/${newFolder}/${fileName}`;
+
+        const writer = fs.createWriteStream(downloadPath);
+        response.data.pipe(writer);
+
+        return new Promise((resolve, reject) => {
+          writer.on("finish", () => resolve({ downloadPath, fileName }));
+          writer.on("error", reject);
+        });
+      })
+      .then(function ({ downloadPath, fileName }) {
+        console.log("File downloaded successfully:", downloadPath);
+        const decompressedFilePath = `${downloadPath}.json`;
+
+        const readStream = fs.createReadStream(downloadPath);
+        const writeStream = fs.createWriteStream(decompressedFilePath);
+
+        const unzip = zlib.createGunzip();
+
+        readStream.pipe(unzip).pipe(writeStream);
+
+        return new Promise((resolve, reject) => {
+          writeStream.on("finish", () =>
+            resolve({
+              decompressedFilePath,
+              fileName,
+            })
+          );
+          writeStream.on("error", (err) => reject(err));
+        });
+      })
+      .then(async function ({ decompressedFilePath, fileName }) {
+        console.log("File decompressed successfully:", decompressedFilePath);
+        // read json file
+        const data = fs.readFileSync(decompressedFilePath, "utf8");
+        const jsonData = JSON.parse(data);
+
+        // save File to DB
+        const createOne = await prisma.file.create({
+          data: {
+            filename: fileName.trim(),
+            userId: userAuth.id,
+            filePath: decompressedFilePath,
+          },
+        });
+
+        await prisma.tu.createMany({
+          data: jsonData.map((item) => {
+            return {
+              ...item,
+              fileId: createOne.id,
+            };
+          }),
+          skipDuplicates: true,
+        });
+
+        return new Promise((resolve) => {
+          resolve({});
+        });
+      })
+      .catch(function (err) {
+        console.error("Error downloading file:", err);
+        return new Promise((_, reject) => {
+          reject({ error: err });
+        });
+      });
+
     return NextResponse.json({ status: "success" }, { status: 200 });
   } catch (error) {
     return NextResponse.error({ message: error.message }, { status: 401 });
