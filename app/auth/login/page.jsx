@@ -1,8 +1,9 @@
 "use client";
+
 import { useForm } from "react-hook-form";
-import { signIn } from "next-auth/react";
+import { signIn, getProviders } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Input,
   Card,
@@ -31,9 +32,22 @@ function LoginPage() {
     resolver: yupResolver(schema),
   });
   const router = useRouter();
+
   const [error, setError] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [providers, setProviders] = useState([]);
+
   const toggleVisibility = () => setIsVisible(!isVisible);
+
+  useEffect(() => {
+    init();
+  }, []);
+
+  const init = async () => {
+    const providers = await getProviders();
+    console.log(providers);
+    setProviders(providers);
+  };
 
   const onSubmit = handleSubmit(async (data) => {
     const res = await signIn("credentials", {
@@ -104,14 +118,43 @@ function LoginPage() {
               isInvalid={errors.password ? true : false}
               errorMessage={errors?.password?.message}
             />
+
             <CardFooter>
-              <Button
-                type="submit"
-                color="primary"
-                className="w-full bg-blue-500 text-white p-3 rounded-lg mt-2"
-              >
-                Login
-              </Button>
+              <div className="flex flex-col w-full">
+                <div className=" flex items-center justify-center">
+                  <Button
+                    type="submit"
+                    color="primary"
+                    className="w-full bg-blue-500 text-white p-3 rounded-lg mt-2"
+                  >
+                    Login
+                  </Button>
+                </div>
+                <div className="flex items-center justify-center mt-4">
+                  <div className="w-full h-0.5 bg-gray-300"></div>
+                  <p className="text-sm text-gray-500 px-2">Or</p>
+                  <div className="w-full h-0.5 bg-gray-300"></div>
+                </div>
+                {Object.values(providers).map((provider) => {
+                  if (provider.id === "credentials") {
+                    return null;
+                  }
+                  return (
+                    <div
+                      key={provider.id}
+                      className=" flex items-center justify-center"
+                    >
+                      <Button
+                        key={provider.id}
+                        onClick={() => signIn(provider.id)}
+                        className="w-full bg-green-600 text-white p-3 rounded-lg mt-2"
+                      >
+                        Sign in with {provider.name}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
             </CardFooter>
           </CardBody>
         </Card>

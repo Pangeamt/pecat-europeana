@@ -53,11 +53,12 @@ model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
-  salt          String
-  hash          String
+  salt          String?
+  hash          String?
   emailVerified DateTime?
   image         String?
   role          Role      @default(USER)
+  provider      String
   accounts      Account[]
   sessions      Session[]
   files         File[]
