@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "../../../../lib/prisma";
 import { validatePassword } from "@/lib/utils";
 
-export const authOptions = {
+const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -101,6 +101,6 @@ export const authOptions = {
 };
 
 const handler = NextAuth(authOptions);
-export const { auth } = handler;
+// export const { auth } = handler;
 
 export { handler as GET, handler as POST };

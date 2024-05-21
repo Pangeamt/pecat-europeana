@@ -31,11 +31,11 @@
     "components/Users/list.jsx",
     "app/auth/login/page.tjx",
     "app/api/users/route.js",
-    "app/api/auth/[...nextauth]/route.js",
     "auth.js",
     "components/icons.jsx",
     "app/api/auth/register/route.js",
-    "app/dashboard/page.jsx"
+    "app/dashboard/page.jsx",
+    "lib/auth.js"
   ],
   "exclude": ["node_modules"]
 }

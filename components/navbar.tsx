@@ -106,13 +106,13 @@ export const Navbar = async () => {
         )}
       </NavbarContent>
 
-      <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
+      {/* <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
         <Link isExternal href={siteConfig.links.github} aria-label="Github">
           <GithubIcon className="text-default-500" />
         </Link>
         <ThemeSwitch />
         <NavbarMenuToggle />
-      </NavbarContent>
+      </NavbarContent> */}
 
       <NavbarMenu>
         {searchInput}

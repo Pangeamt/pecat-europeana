@@ -6,7 +6,7 @@ import { generateSaltAndHash } from "@/lib/utils";
 
 const router = createEdgeRouter();
 
-router.post(async (req) => {
+router.post(async (req, res) => {
   try {
     const data = await req.json();
 
@@ -40,16 +40,22 @@ router.post(async (req) => {
     delete newUser?.salt;
     delete newUser?.hash;
 
-    return NextResponse.json(newUser);
+    // const result = await NextResponse.json(newUser);
+
+    return res.status(200).json(newUser);
   } catch (error) {
-    return NextResponse.json(
-      {
-        message: error.message,
-      },
-      {
-        status: 400,
-      }
-    );
+    // const result = await NextResponse.json(
+    //   {
+    //     message: error.message,
+    //   },
+    //   {
+    //     status: 400,
+    //   }
+    // );
+
+    return res.status(400).json({
+      message: error.message,
+    });
   }
 });
 
