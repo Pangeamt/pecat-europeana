@@ -49,7 +49,7 @@ const authOptions = {
       checks: ["pkce", "state"],
       clientId: process.env.MINT_CLIENT_ID,
       clientSecret: process.env.MINT_CLIENT_SECRET,
-      redirectUri: "http://localhost:3000/api/auth/callback/mint",
+      redirectUri: `${process.env.NEXTAUTH_URL}/api/auth/callback/mint`,
       profile: async (profile) => {
         const userFound = await prisma.user.findUnique({
           where: {
