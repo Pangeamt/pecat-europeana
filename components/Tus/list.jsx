@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import {
   Table,
@@ -144,7 +144,7 @@ const ProjectList = ({ fileId }) => {
     direction: "descending",
   });
 
-  const fetchTus = async () => {
+  const fetchTus = useCallback(async () => {
     setIsLoading(true);
     const res = await fetch(`/api/tus?fileId=${fileId}`);
     const data = await res.json();
@@ -172,22 +172,25 @@ const ProjectList = ({ fileId }) => {
     setStats(aux);
     setIsLoading(false);
     setRa(uid());
-  };
+  }, [fileId]);
 
   // save tu
-  const saveTu = async (tuId, action) => {
-    setIsLoading(true);
-    await fetch(`/api/tus`, {
-      method: "POST",
-      body: JSON.stringify({ tuId, reviewLiteral: historyTus[tuId], action }),
-    });
-    fetchTus();
-    setIsLoading(false);
-  };
+  const saveTu = useCallback(
+    async (tuId, action) => {
+      setIsLoading(true);
+      await fetch(`/api/tus`, {
+        method: "POST",
+        body: JSON.stringify({ tuId, reviewLiteral: historyTus[tuId], action }),
+      });
+      fetchTus();
+      setIsLoading(false);
+    },
+    [fetchTus, historyTus]
+  );
 
   useEffect(() => {
     fetchTus();
-  }, []);
+  }, [fetchTus]);
 
   const hasSearchFilter = Boolean(filterValue);
   const headerColumns = React.useMemo(() => {
@@ -219,7 +222,7 @@ const ProjectList = ({ fileId }) => {
     }
 
     return filteredTus;
-  }, [tus, filterValue, statusFilter]);
+  }, [tus, hasSearchFilter, statusFilter, filterValue]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -240,80 +243,83 @@ const ProjectList = ({ fileId }) => {
     });
   }, [sortDescriptor, items]);
 
-  const renderCell = React.useCallback((user, columnKey) => {
-    const cellValue = user[columnKey];
-    let text;
+  const renderCell = React.useCallback(
+    (user, columnKey) => {
+      const cellValue = user[columnKey];
+      let text;
 
-    switch (columnKey) {
-      case "reviewLiteral":
-        text = user["translatedLiteral"];
-        if (user["reviewLiteral"] !== null) text = user["reviewLiteral"];
-        return (
-          <div
-            css={{
-              width: "100%", // Ajusta el ancho según tu caso
-              height: "100%", // Ajusta la altura según tu caso
-            }}
-          >
-            <Textarea
-              className={` review-literal review-literal-${user.id}`}
-              defaultValue={text}
-              minRows={1}
-              onFocus={() => {
-                if (selectedKey !== user.id) {
-                  setSelectedKey(user.id);
-                  fetchTus();
-                }
-              }}
-              onChange={(e) => {
-                const value = e.target.value;
-                const aux = historyTus;
-                aux[user.id] = value;
-                setHistoryTus(() => aux);
-              }}
-            />
-          </div>
-        );
-
-      case "actions":
-        return (
-          <div className="relative flex items-center gap-2">
-            <Button
-              isIconOnly
-              aria-label="Like"
-              color="success"
-              size="sm"
-              radius="full"
-              onClick={() => {
-                saveTu(user.id, "approve");
-              }}
-              onPress={() => {
-                saveTu(user.id, "approve");
+      switch (columnKey) {
+        case "reviewLiteral":
+          text = user["translatedLiteral"];
+          if (user["reviewLiteral"] !== null) text = user["reviewLiteral"];
+          return (
+            <div
+              css={{
+                width: "100%", // Ajusta el ancho según tu caso
+                height: "100%", // Ajusta la altura según tu caso
               }}
             >
-              <CheckIcon />
-            </Button>
-            <Button
-              isIconOnly
-              aria-label="Like"
-              color="danger"
-              size="sm"
-              radius="full"
-              onClick={() => {
-                saveTu(user.id, "reject");
-              }}
-              onPress={() => {
-                saveTu(user.id, "reject");
-              }}
-            >
-              <XIcon />
-            </Button>
-          </div>
-        );
-      default:
-        return cellValue;
-    }
-  }, []);
+              <Textarea
+                className={` review-literal review-literal-${user.id}`}
+                defaultValue={text}
+                minRows={1}
+                onFocus={() => {
+                  if (selectedKey !== user.id) {
+                    setSelectedKey(user.id);
+                    fetchTus();
+                  }
+                }}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const aux = historyTus;
+                  aux[user.id] = value;
+                  setHistoryTus(() => aux);
+                }}
+              />
+            </div>
+          );
+
+        case "actions":
+          return (
+            <div className="relative flex items-center gap-2">
+              <Button
+                isIconOnly
+                aria-label="Like"
+                color="success"
+                size="sm"
+                radius="full"
+                onClick={() => {
+                  saveTu(user.id, "approve");
+                }}
+                onPress={() => {
+                  saveTu(user.id, "approve");
+                }}
+              >
+                <CheckIcon />
+              </Button>
+              <Button
+                isIconOnly
+                aria-label="Like"
+                color="danger"
+                size="sm"
+                radius="full"
+                onClick={() => {
+                  saveTu(user.id, "reject");
+                }}
+                onPress={() => {
+                  saveTu(user.id, "reject");
+                }}
+              >
+                <XIcon />
+              </Button>
+            </div>
+          );
+        default:
+          return cellValue;
+      }
+    },
+    [fetchTus, historyTus, saveTu, selectedKey]
+  );
 
   const onNextPage = React.useCallback(() => {
     if (page < pages) {
@@ -474,13 +480,18 @@ const ProjectList = ({ fileId }) => {
     );
   }, [
     filterValue,
+    onSearchChange,
+    ra,
+    stats.notReviewed,
+    stats.edited,
+    stats.originalAccepted,
+    stats.rejected,
+    isLoading,
+    tus.length,
+    statusFilter,
     visibleColumns,
     onRowsPerPageChange,
-    tus.length,
-    onSearchChange,
-    hasSearchFilter,
-    statusFilter,
-    ra,
+    onClear,
   ]);
 
   const bottomContent = React.useMemo(() => {
@@ -510,7 +521,14 @@ const ProjectList = ({ fileId }) => {
         </div>
       </div>
     );
-  }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
+  }, [
+    selectedKeys,
+    filteredItems.length,
+    page,
+    pages,
+    onPreviousPage,
+    onNextPage,
+  ]);
 
   return (
     <>

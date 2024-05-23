@@ -25,6 +25,7 @@ async function main() {
       name: adminData.name,
       email: adminData.email,
       role: "ADMIN",
+      provider: "pecat",
       salt,
       hash,
     },

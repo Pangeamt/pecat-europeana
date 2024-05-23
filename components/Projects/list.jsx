@@ -36,6 +36,7 @@ import {
 } from "@/components/icons";
 
 import ProjectAdd from "@/components/Projects/add";
+import Confirm from "@/components/UI/Confirm";
 
 const INITIAL_VISIBLE_COLUMNS = [
   "filename",
@@ -96,6 +97,20 @@ const ProjectList = () => {
     setIsLoading(false);
   };
 
+  const deleteFile = async (fileId) => {
+    const res = await fetch(`/api/files`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ fileId }),
+    });
+    const data = await res.json();
+    if (data.message === "success") {
+      fetchFiles();
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) {
       fetchFiles();
@@ -122,7 +137,7 @@ const ProjectList = () => {
     }
 
     return filteredFiles;
-  }, [files, filterValue]);
+  }, [files, filterValue, hasSearchFilter]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -170,7 +185,7 @@ const ProjectList = () => {
               );
             })}
             <div key="total" className="flex justify-between">
-              <span>TOTAL</span>
+              <span className="text-xs">TOTAL</span>
               <code>{user.totalCount}</code>
             </div>
           </div>
@@ -226,9 +241,19 @@ const ProjectList = () => {
               </span>
             </Tooltip>
             <Tooltip color="danger" content="Delete file">
-              <span className="text-lg text-danger cursor-pointer active:opacity-50">
-                <DeleteIcon />
-              </span>
+              <Confirm
+                title="Delete File"
+                text="Are you sure you want to delete this item?"
+                action={async () => {
+                  await deleteFile(user.id);
+                  fetchFiles();
+                }}
+                icon={
+                  <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                    <DeleteIcon />
+                  </span>
+                }
+              />
             </Tooltip>
           </div>
         );
@@ -332,11 +357,13 @@ const ProjectList = () => {
     );
   }, [
     filterValue,
-    visibleColumns,
-    onRowsPerPageChange,
-    files.length,
     onSearchChange,
-    hasSearchFilter,
+    visibleColumns,
+    onOpen,
+    files.length,
+    onRowsPerPageChange,
+    rowsPerPage,
+    onClear,
   ]);
 
   const bottomContent = React.useMemo(() => {
@@ -376,7 +403,14 @@ const ProjectList = () => {
         </div>
       </div>
     );
-  }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
+  }, [
+    selectedKeys,
+    filteredItems.length,
+    page,
+    pages,
+    onPreviousPage,
+    onNextPage,
+  ]);
 
   return (
     <>

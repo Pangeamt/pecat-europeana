@@ -7,4 +7,6 @@
     border-bottom: 1px solid #e2e8f0;
 }
 
-.review-literal {}
+.confirm-delete-modal {
+    border: solid 1px #f31160;
+}

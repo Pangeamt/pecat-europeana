@@ -192,10 +192,14 @@ export const GET = async (req, res) => {
     if (!user)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     const files = await prisma.file.findMany({
+      where: {
+        deletedAt: null,
+      },
       select: {
         id: true,
         filename: true,
         createdAt: true,
+        deletedAt: true,
         User: {
           select: {
             name: true,
@@ -225,6 +229,41 @@ export const GET = async (req, res) => {
     }
 
     return NextResponse.json({ files }, { status: 200 });
+  } catch (error) {
+    return NextResponse.error({ message: error.message }, { status: 401 });
+  }
+};
+
+export const DELETE = async (req, res) => {
+  try {
+    const authValue = await auth();
+    if (!authValue)
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const { user } = authValue;
+    if (!user)
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    const { fileId } = await req.json();
+    const file = await prisma.file.findUnique({
+      where: {
+        id: fileId,
+      },
+    });
+
+    if (!file) {
+      return NextResponse.json({ message: "File not found" }, { status: 404 });
+    }
+
+    await prisma.file.update({
+      where: {
+        id: fileId,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({ status: "success" }, { status: 200 });
   } catch (error) {
     return NextResponse.error({ message: error.message }, { status: 401 });
   }
