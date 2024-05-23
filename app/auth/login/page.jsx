@@ -45,7 +45,6 @@ function LoginPage() {
 
   const init = async () => {
     const providers = await getProviders();
-    console.log(providers);
     setProviders(providers);
   };
 

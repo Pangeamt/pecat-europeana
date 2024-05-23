@@ -10,12 +10,8 @@ import {
   Button,
 } from "@nextui-org/react";
 
-// Import React FilePond
 import { FilePond } from "react-filepond";
-
-// Import FilePond styles
 import "filepond/dist/filepond.min.css";
-import { set } from "react-hook-form";
 
 const ProjectAdd = ({ isOpen, onOpenChange }) => {
   const [selectWay, setSelectWay] = useState("upload-files");
@@ -34,12 +30,12 @@ const ProjectAdd = ({ isOpen, onOpenChange }) => {
       });
 
       if (res.ok) {
-        console.log("Success");
         setUrl("");
+        onOpenChange();
         setIsLoading(false);
       }
     } catch (error) {
-      console.log(error);
+      onOpenChange();
       setIsLoading(false);
     }
   };

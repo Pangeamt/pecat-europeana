@@ -200,6 +200,7 @@ export const GET = async (req, res) => {
         filename: true,
         createdAt: true,
         deletedAt: true,
+        label: true,
         User: {
           select: {
             name: true,
@@ -260,6 +261,42 @@ export const DELETE = async (req, res) => {
       },
       data: {
         deletedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({ status: "success" }, { status: 200 });
+  } catch (error) {
+    return NextResponse.error({ message: error.message }, { status: 401 });
+  }
+};
+
+// PATCH: Update file
+export const PATCH = async (req, res) => {
+  try {
+    const authValue = await auth();
+    if (!authValue)
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const { user } = authValue;
+    if (!user)
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    const { fileId, data } = await req.json();
+    const file = await prisma.file.findUnique({
+      where: {
+        id: fileId,
+      },
+    });
+
+    if (!file) {
+      return NextResponse.json({ message: "File not found" }, { status: 404 });
+    }
+
+    await prisma.file.update({
+      where: {
+        id: fileId,
+      },
+      data: {
+        ...data,
       },
     });
 

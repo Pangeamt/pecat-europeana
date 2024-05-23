@@ -30,12 +30,15 @@ import {
   ChevronDownIcon,
   PlusIcon,
   EyeIcon,
-  EditIcon,
   DeleteIcon,
   DownloadIcon,
 } from "@/components/icons";
+import copy from "copy-to-clipboard";
+import toast, { Toaster } from "react-hot-toast";
 
 import ProjectAdd from "@/components/Projects/add";
+import ProjectEdit from "@/components/Projects/edit";
+
 import Confirm from "@/components/UI/Confirm";
 
 const INITIAL_VISIBLE_COLUMNS = [
@@ -72,6 +75,8 @@ const getWidthByColumn = (uid) => {
 };
 
 const ProjectList = () => {
+  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [page, setPage] = React.useState(1);
@@ -106,9 +111,30 @@ const ProjectList = () => {
       body: JSON.stringify({ fileId }),
     });
     const data = await res.json();
-    if (data.message === "success") {
-      fetchFiles();
+    if (data.status === "success") {
+      await fetchFiles();
     }
+  };
+
+  const saveFile = async (file) => {
+    const res = await fetch("/api/files", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(file),
+    });
+    const data = await res.json();
+    if (data.status === "success") {
+      await fetchFiles();
+    }
+  };
+
+  const copyLink = (fileId) => {
+    copy(`${baseURL}/api/file?fileId=${fileId}`);
+    toast("Link copied to clipboard!", {
+      icon: "📋",
+    });
   };
 
   useEffect(() => {
@@ -158,8 +184,8 @@ const ProjectList = () => {
     });
   }, [sortDescriptor, items]);
 
-  const renderCell = React.useCallback((user, columnKey) => {
-    const cellValue = user[columnKey];
+  const renderCell = React.useCallback((project, columnKey) => {
+    const cellValue = project[columnKey];
 
     switch (columnKey) {
       case "createdAt":
@@ -167,16 +193,16 @@ const ProjectList = () => {
       case "User":
         return (
           <User
-            avatarProps={{ radius: "lg", src: user.User.image, size: "sm" }}
-            description={user.User.email}
+            avatarProps={{ radius: "lg", src: project.User.image, size: "sm" }}
+            description={project.User.email}
           >
-            {user.User.email}
+            {project.User.email}
           </User>
         );
       case "stats":
         return (
           <div class="">
-            {user.countByStatus.map((status) => {
+            {project.countByStatus.map((status) => {
               return (
                 <div key={status.Status} className="flex justify-between">
                   <span className="text-xs">{capitalize(status.Status)}</span>
@@ -186,20 +212,20 @@ const ProjectList = () => {
             })}
             <div key="total" className="flex justify-between">
               <span className="text-xs">TOTAL</span>
-              <code>{user.totalCount}</code>
+              <code>{project.totalCount}</code>
             </div>
           </div>
         );
       case "progress":
-        const NOT_REVIEWED = user.countByStatus.find((item) => {
+        const NOT_REVIEWED = project.countByStatus.find((item) => {
           if (item.Status === "NOT_REVIEWED") {
             return true;
           }
         });
         const aux = NOT_REVIEWED ? NOT_REVIEWED._count : 0;
         const percentage = (
-          ((user.totalCount - aux) * 100) /
-          user.totalCount
+          ((project.totalCount - aux) * 100) /
+          project.totalCount
         ).toFixed(2);
 
         return (
@@ -222,32 +248,44 @@ const ProjectList = () => {
         return (
           <div className="relative flex items-center gap-2">
             <Tooltip content="Details">
-              <Link href={`/dashboard/tus/${user.id}`}>
+              <Link href={`/dashboard/tus/${project.id}`}>
                 <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
                   <EyeIcon />
                 </span>
               </Link>
             </Tooltip>
             <Tooltip content="Download">
-              <Link href={`/api/file?fileId=${user.id}`} target="_blank">
-                <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                  <DownloadIcon />
-                </span>
-              </Link>
+              <Dropdown>
+                <DropdownTrigger>
+                  <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                    <DownloadIcon />
+                  </span>
+                </DropdownTrigger>
+                <DropdownMenu aria-label="Static Actions">
+                  <DropdownItem>
+                    <p onClick={() => copyLink(project.id)} key="copy">
+                      Copy link
+                    </p>
+                  </DropdownItem>
+                  <DropdownItem key="download">
+                    <Link
+                      href={`/api/file?fileId=${project.id}`}
+                      target="_blank"
+                    >
+                      Download file
+                    </Link>
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
             </Tooltip>
             <Tooltip content="Edit label file">
-              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                <EditIcon />
-              </span>
+              <ProjectEdit project={project} action={saveFile} />
             </Tooltip>
             <Tooltip color="danger" content="Delete file">
               <Confirm
                 title="Delete File"
                 text="Are you sure you want to delete this item?"
-                action={async () => {
-                  await deleteFile(user.id);
-                  fetchFiles();
-                }}
+                action={async () => deleteFile(project.id)}
                 icon={
                   <span className="text-lg text-danger cursor-pointer active:opacity-50">
                     <DeleteIcon />
@@ -260,6 +298,7 @@ const ProjectList = () => {
       default:
         return cellValue;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onNextPage = React.useCallback(() => {
@@ -414,6 +453,7 @@ const ProjectList = () => {
 
   return (
     <>
+      <Toaster />
       <Table
         aria-label="Example table with custom cells, pagination and sorting"
         isHeaderSticky

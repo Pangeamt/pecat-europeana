@@ -69,10 +69,8 @@ export const GET = async (req, res) => {
     };
     const { filePath } = await compress();
 
-    const protocol = req.headers["x-forwarded-proto"] || "http"; // Obtener el protocolo HTTP o HTTPS
-    const host = req.headers.host || "localhost:3000"; // Obtener el nombre de dominio
-    const baseUrl = `${protocol}://${host}`;
-    const downloadPath = baseUrl + filePath.replace("./public", "/");
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const downloadPath = baseUrl + filePath.replace("./public", "");
 
     setTimeout(() => {
       fs.unlinkSync(jsonFilePath);
