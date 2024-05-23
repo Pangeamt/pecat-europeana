@@ -191,10 +191,15 @@ export const GET = async (req, res) => {
     const { user } = authValue;
     if (!user)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    const where = {
+      deletedAt: null,
+    };
+    if (!user.isAdmin) {
+      where.userId = user.id;
+    }
     const files = await prisma.file.findMany({
-      where: {
-        deletedAt: null,
-      },
+      where,
       select: {
         id: true,
         filename: true,
