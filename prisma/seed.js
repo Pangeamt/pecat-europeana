@@ -16,14 +16,21 @@ async function main() {
     email: "admin@pecat.com",
     password: "admin123",
   };
-  const { salt, hash } = generateSaltAndHash({ password: adminData.password });
 
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@pecat.com" },
+  const mintData = {
+    name: "Mint",
+    email: "mint@pecat.com",
+    password: "mint123",
+  };
+
+  const { salt, hash } = generateSaltAndHash({ password: mintData.password });
+
+  const mint = await prisma.user.upsert({
+    where: { email: mintData.email },
     update: {},
     create: {
-      name: adminData.name,
-      email: adminData.email,
+      name: mintData.name,
+      email: mintData.email,
       role: "ADMIN",
       provider: "pecat",
       salt,
@@ -31,7 +38,24 @@ async function main() {
     },
   });
 
-  console.log({ admin });
+  console.log({ mint });
+
+  // const { salt, hash } = generateSaltAndHash({ password: adminData.password });
+
+  // const admin = await prisma.user.upsert({
+  //   where: { email: "admin@pecat.com" },
+  //   update: {},
+  //   create: {
+  //     name: adminData.name,
+  //     email: adminData.email,
+  //     role: "ADMIN",
+  //     provider: "pecat",
+  //     salt,
+  //     hash,
+  //   },
+  // });
+
+  // console.log({ admin });
 }
 main()
   .then(async () => {
