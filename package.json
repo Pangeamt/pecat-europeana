@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3005",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -29,6 +29,7 @@
     "@react-aria/ssr": "^3.8.0",
     "@react-aria/visually-hidden": "^3.8.6",
     "@tanstack/react-query": "^5.22.2",
+    "@types/next-auth": "^3.15.0",
     "@types/react": "18.2.21",
     "@types/react-dom": "18.2.7",
     "autoprefixer": "10.4.16",
@@ -46,7 +47,7 @@
     "fs": "^0.0.1-security",
     "intl-messageformat": "^10.5.0",
     "next": "^14.2.3",
-    "next-auth": "^4.24.6",
+    "next-auth": "^4.24.7",
     "next-connect": "^1.0.0-next.4",
     "next-themes": "^0.2.1",
     "postcss": "8.4.31",
@@ -69,7 +70,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.19",
-    "prisma": "^5.10.2",
+    "prisma": "^5.14.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }

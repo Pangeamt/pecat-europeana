@@ -8,6 +8,7 @@ import {
   ModalFooter,
   Button,
   useDisclosure,
+  Tooltip,
 } from "@nextui-org/react";
 
 interface ConfirmProps {
@@ -31,7 +32,9 @@ const Confirm = ({ text, action, icon, title }: ConfirmProps) => {
   };
   return (
     <>
-      <div onClick={onOpen}>{icon}</div>
+      <Tooltip color="danger" content="Delete file">
+        <div onClick={onOpen}>{icon}</div>
+      </Tooltip>
       <Modal
         className="confirm-delete-modal"
         isOpen={isOpen}

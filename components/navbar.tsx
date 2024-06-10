@@ -3,11 +3,11 @@ import {
   Navbar as NextUINavbar,
   NavbarContent,
   NavbarMenu,
-  NavbarMenuToggle,
   NavbarBrand,
   NavbarItem,
   NavbarMenuItem,
 } from "@nextui-org/navbar";
+import { getServerSession } from "next-auth";
 
 import { Kbd, Link, Input } from "@nextui-org/react";
 
@@ -18,7 +18,7 @@ import NextLink from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
 
-import { auth } from "@/lib/auth";
+import { authOptions } from "@/lib/auth";
 
 import { ThemeSwitch } from "@/components/theme-switch";
 import UserDropdown from "@/components/UserDropdown";
@@ -27,7 +27,7 @@ import { GithubIcon, SearchIcon } from "@/components/icons";
 import Logo from "@/public/images/logo_PECAT_horizontal.png";
 
 export const Navbar = async () => {
-  const session = await auth();
+  const authValue = await getServerSession(authOptions);
 
   const searchInput = (
     <Input
@@ -59,7 +59,7 @@ export const Navbar = async () => {
             {/* <p className="font-bold text-inherit">ACME</p> */}
           </NextLink>
         </NavbarBrand>
-        {session?.user && (
+        {authValue?.user && (
           <ul className="hidden lg:flex gap-4 justify-start ml-2">
             {siteConfig.navItems.map((item) => (
               <NavbarItem key={item.href}>
@@ -95,12 +95,12 @@ export const Navbar = async () => {
           </Link>
           <ThemeSwitch />
         </NavbarItem> */}
-        {session?.user && (
+        {authValue?.user && (
           <>
             <NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>
 
             <NavbarItem className="hidden md:flex">
-              <UserDropdown session={session} />
+              <UserDropdown session={authValue} />
             </NavbarItem>
           </>
         )}

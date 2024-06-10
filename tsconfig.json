@@ -35,7 +35,8 @@
     "components/icons.jsx",
     "app/api/auth/register/route.js",
     "app/dashboard/page.jsx",
-    "lib/auth.js"
+    "lib/auth.ts",
+    "app/api/auth/[...nextauth]/route.js"
   ],
   "exclude": ["node_modules"]
 }

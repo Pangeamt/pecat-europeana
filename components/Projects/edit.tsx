@@ -8,6 +8,7 @@ import {
   Button,
   useDisclosure,
   Input,
+  Tooltip,
 } from "@nextui-org/react";
 
 import { EditIcon } from "@/components/icons";
@@ -47,12 +48,14 @@ const ProjectEdit = ({ project, action }: ProjectEditProps) => {
 
   return (
     <>
-      <span
-        onClick={onOpen}
-        className="text-lg text-default-400 cursor-pointer active:opacity-50"
-      >
-        <EditIcon color="#2870ef" />
-      </span>
+      <Tooltip content="Edit label file">
+        <span
+          onClick={onOpen}
+          className="text-lg text-default-400 cursor-pointer active:opacity-50"
+        >
+          <EditIcon color="#2870ef" />
+        </span>
+      </Tooltip>
 
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="top-center">
         <ModalContent>

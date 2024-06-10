@@ -366,7 +366,7 @@ const ProjectList = ({ fileId }) => {
             onValueChange={onSearchChange}
           />
           <div className="flex gap-3">
-            <div key={ra} class="grid grid-rows-2">
+            <div key={ra} className="grid grid-rows-2">
               <div>
                 <Chip className="mr-1" color="default" size="sm">
                   Not reviewed
@@ -406,7 +406,7 @@ const ProjectList = ({ fileId }) => {
                 />
               </div>
             </div>
-            <div class="flex justify-start"></div>
+            <div className="flex justify-start"></div>
 
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">

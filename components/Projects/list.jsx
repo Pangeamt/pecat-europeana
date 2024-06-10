@@ -81,7 +81,7 @@ const ProjectList = () => {
 
   const [page, setPage] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [files, setFiles] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterValue, setFilterValue] = React.useState("");
   const [selectedKeys, setSelectedKeys] = React.useState(new Set([]));
@@ -94,16 +94,16 @@ const ProjectList = () => {
     direction: "descending",
   });
 
-  const fetchFiles = async () => {
+  const fetchProjects = async () => {
     setIsLoading(true);
-    const res = await fetch("/api/files");
+    const res = await fetch("/api/projects");
     const data = await res.json();
-    setFiles(data.files);
+    setProjects(data.projects);
     setIsLoading(false);
   };
 
   const deleteFile = async (fileId) => {
-    const res = await fetch(`/api/files`, {
+    const res = await fetch(`/api/projects`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -112,12 +112,12 @@ const ProjectList = () => {
     });
     const data = await res.json();
     if (data.status === "success") {
-      await fetchFiles();
+      await fetchProjects();
     }
   };
 
   const saveFile = async (file) => {
-    const res = await fetch("/api/files", {
+    const res = await fetch("/api/projects", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -126,12 +126,12 @@ const ProjectList = () => {
     });
     const data = await res.json();
     if (data.status === "success") {
-      await fetchFiles();
+      await fetchProjects();
     }
   };
 
   const copyLink = (fileId) => {
-    copy(`${baseURL}/api/file?fileId=${fileId}`);
+    copy(`${baseURL}/api/projects?fileId=${fileId}`);
     toast("Link copied to clipboard!", {
       icon: "📋",
     });
@@ -139,7 +139,7 @@ const ProjectList = () => {
 
   useEffect(() => {
     if (!isOpen) {
-      fetchFiles();
+      fetchProjects();
       setRowsPerPage(10);
     }
   }, [isOpen]);
@@ -154,16 +154,16 @@ const ProjectList = () => {
   }, [visibleColumns]);
 
   const filteredItems = React.useMemo(() => {
-    let filteredFiles = [...files];
+    let filteredProjects = [...projects];
 
     if (hasSearchFilter) {
-      filteredFiles = filteredFiles.filter((file) =>
-        file.filename.toLowerCase().includes(filterValue.toLowerCase())
+      filteredProjects = filteredProjects.filter((project) =>
+        project.filename.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
 
-    return filteredFiles;
-  }, [files, filterValue, hasSearchFilter]);
+    return filteredProjects;
+  }, [projects, filterValue, hasSearchFilter]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -184,7 +184,7 @@ const ProjectList = () => {
     });
   }, [sortDescriptor, items]);
 
-  const renderCell = React.useCallback((project, columnKey) => {
+  const renderCell = (project, columnKey) => {
     const cellValue = project[columnKey];
 
     switch (columnKey) {
@@ -201,7 +201,7 @@ const ProjectList = () => {
         );
       case "stats":
         return (
-          <div class="">
+          <div className="">
             {project.countByStatus.map((status) => {
               return (
                 <div key={status.Status} className="flex justify-between">
@@ -254,52 +254,50 @@ const ProjectList = () => {
                 </span>
               </Link>
             </Tooltip>
-            <Tooltip content="Download">
-              <Dropdown>
-                <DropdownTrigger>
+
+            <Dropdown>
+              <DropdownTrigger>
+                <Tooltip content="Download">
                   <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
                     <DownloadIcon />
                   </span>
-                </DropdownTrigger>
-                <DropdownMenu aria-label="Static Actions">
-                  <DropdownItem>
-                    <p onClick={() => copyLink(project.id)} key="copy">
-                      Copy link
-                    </p>
-                  </DropdownItem>
-                  <DropdownItem key="download">
-                    <Link
-                      href={`/api/file?fileId=${project.id}`}
-                      target="_blank"
-                    >
-                      Download file
-                    </Link>
-                  </DropdownItem>
-                </DropdownMenu>
-              </Dropdown>
-            </Tooltip>
-            <Tooltip content="Edit label file">
-              <ProjectEdit project={project} action={saveFile} />
-            </Tooltip>
-            <Tooltip color="danger" content="Delete file">
-              <Confirm
-                title="Delete File"
-                text="Are you sure you want to delete this item?"
-                action={async () => deleteFile(project.id)}
-                icon={
-                  <span className="text-lg text-danger cursor-pointer active:opacity-50">
-                    <DeleteIcon />
-                  </span>
-                }
-              />
-            </Tooltip>
+                </Tooltip>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Static Actions">
+                <DropdownItem>
+                  <p onClick={() => copyLink(project.id)} key="copy">
+                    Copy link
+                  </p>
+                </DropdownItem>
+                <DropdownItem key="download">
+                  <Link
+                    href={`/api/projects?fileId=${project.id}`}
+                    target="_blank"
+                  >
+                    Download file
+                  </Link>
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+
+            <ProjectEdit project={project} action={saveFile} />
+
+            <Confirm
+              title="Delete Project"
+              text="Are you sure you want to delete this item?"
+              action={async () => deleteFile(project.id)}
+              icon={
+                <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                  <DeleteIcon />
+                </span>
+              }
+            />
           </div>
         );
       default:
         return cellValue;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  };
 
   const onNextPage = React.useCallback(() => {
     if (page < pages) {
@@ -377,7 +375,7 @@ const ProjectList = () => {
         </div>
         <div className="flex justify-between items-center">
           <span className="text-default-400 text-small">
-            Total {files.length} files
+            Total {projects.length} projects
           </span>
           <label className="flex items-center text-default-400 text-small">
             Rows per page:
@@ -399,7 +397,7 @@ const ProjectList = () => {
     onSearchChange,
     visibleColumns,
     onOpen,
-    files.length,
+    projects.length,
     onRowsPerPageChange,
     rowsPerPage,
     onClear,
@@ -487,7 +485,7 @@ const ProjectList = () => {
           )}
         </TableHeader>
         <TableBody
-          emptyContent={!isLoading ? "No files found" : " "}
+          emptyContent={!isLoading ? "No projects found" : " "}
           items={sortedItems}
           isLoading={isLoading}
           loadingContent={<Spinner label="Loading..." />}
@@ -504,7 +502,7 @@ const ProjectList = () => {
       <ProjectAdd
         isOpen={isOpen}
         onOpenChange={onOpenChange}
-        refetch={fetchFiles}
+        refetch={fetchProjects}
       />
     </>
   );

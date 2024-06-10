@@ -7,9 +7,10 @@ const pump = promisify(pipeline);
 const axios = require("axios");
 const contentDisposition = require("content-disposition");
 const zlib = require("zlib");
+import { getServerSession } from "next-auth";
 
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { authOptions } from "@/lib/auth";
 
 export const POST = async (req, res) => {
   try {
@@ -25,16 +26,16 @@ export const POST = async (req, res) => {
     console.log(userAuth);
 
     const formData = await req.formData();
-    const files = formData.getAll("files");
+    const projects = formData.getAll("projects");
 
-    if (files.length === 0) {
+    if (projects.length === 0) {
       return NextResponse.json(
         { message: "No file uploaded" },
         { status: 400 }
       );
     }
 
-    for (const file of files) {
+    for (const file of projects) {
       if (file && file.name) {
         const fileName = file.name.trim().replace(/\s+/g, "");
         const fileExtension = fileName.split(".").pop().toLowerCase();
@@ -53,7 +54,7 @@ export const POST = async (req, res) => {
         const jsonData = JSON.parse(data);
 
         // save File to DB
-        const createOne = await prisma.file.create({
+        const createOne = await prisma.project.create({
           data: {
             filename: file.name.trim(),
             userId: userAuth.id,
@@ -64,7 +65,7 @@ export const POST = async (req, res) => {
           data: jsonData.map((item) => {
             return {
               ...item,
-              fileId: createOne.id,
+              projectId: createOne.id,
             };
           }),
           skipDuplicates: true,
@@ -148,7 +149,7 @@ export const PUT = async (req, res) => {
         const jsonData = JSON.parse(data);
 
         // save File to DB
-        const createOne = await prisma.file.create({
+        const createOne = await prisma.project.create({
           data: {
             filename: fileName.trim(),
             userId: userAuth.id,
@@ -160,7 +161,7 @@ export const PUT = async (req, res) => {
           data: jsonData.map((item) => {
             return {
               ...item,
-              fileId: createOne.id,
+              projectId: createOne.id,
             };
           }),
           skipDuplicates: true,
@@ -185,7 +186,8 @@ export const PUT = async (req, res) => {
 
 export const GET = async (req, res) => {
   try {
-    const authValue = await auth();
+    const authValue = await getServerSession(authOptions);
+
     if (!authValue)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     const { user } = authValue;
@@ -195,10 +197,10 @@ export const GET = async (req, res) => {
     const where = {
       deletedAt: null,
     };
-    if (!user.isAdmin) {
+    if (user.role !== "ADMIN") {
       where.userId = user.id;
     }
-    const files = await prisma.file.findMany({
+    const projects = await prisma.project.findMany({
       where,
       select: {
         id: true,
@@ -215,26 +217,26 @@ export const GET = async (req, res) => {
       },
     });
 
-    for (let i = 0; i < files.length; i++) {
-      const element = files[i];
+    for (let i = 0; i < projects.length; i++) {
+      const element = projects[i];
       const countByStatus = await prisma.tu.groupBy({
         by: ["Status"],
         _count: true,
         where: {
-          fileId: element.id,
+          projectId: element.id,
         },
       });
       const totalCount = await prisma.tu.count({
         where: {
-          fileId: element.id,
+          projectId: element.id,
         },
       });
-      files[i].countByStatus = countByStatus;
-      files[i].totalCount = totalCount;
+      projects[i].countByStatus = countByStatus;
+      projects[i].totalCount = totalCount;
       console.log(countByStatus);
     }
 
-    return NextResponse.json({ files }, { status: 200 });
+    return NextResponse.json({ projects }, { status: 200 });
   } catch (error) {
     return NextResponse.error({ message: error.message }, { status: 401 });
   }
@@ -249,10 +251,10 @@ export const DELETE = async (req, res) => {
     if (!user)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const { fileId } = await req.json();
-    const file = await prisma.file.findUnique({
+    const { projectId } = await req.json();
+    const file = await prisma.project.findUnique({
       where: {
-        id: fileId,
+        id: projectId,
       },
     });
 
@@ -260,9 +262,9 @@ export const DELETE = async (req, res) => {
       return NextResponse.json({ message: "File not found" }, { status: 404 });
     }
 
-    await prisma.file.update({
+    await prisma.project.update({
       where: {
-        id: fileId,
+        id: projectId,
       },
       data: {
         deletedAt: new Date(),
@@ -285,10 +287,10 @@ export const PATCH = async (req, res) => {
     if (!user)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const { fileId, data } = await req.json();
-    const file = await prisma.file.findUnique({
+    const { projectId, data } = await req.json();
+    const file = await prisma.project.findUnique({
       where: {
-        id: fileId,
+        id: projectId,
       },
     });
 
@@ -296,9 +298,9 @@ export const PATCH = async (req, res) => {
       return NextResponse.json({ message: "File not found" }, { status: 404 });
     }
 
-    await prisma.file.update({
+    await prisma.project.update({
       where: {
-        id: fileId,
+        id: projectId,
       },
       data: {
         ...data,

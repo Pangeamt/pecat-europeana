@@ -63,7 +63,7 @@ const ProjectAdd = ({ isOpen, onOpenChange }) => {
                   maxFiles={3}
                   server="/api/files"
                   name="files"
-                  labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>  <strong class="text-red-500">(max 3)</strong>'
+                  labelIdle='Drag & Drop your files or <span className="filepond--label-action">Browse</span>  <strong className="text-red-500">(max 3)</strong>'
                 />
               )}
               {selectWay === "url" && (
