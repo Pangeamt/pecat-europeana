@@ -41,7 +41,7 @@
     "crypto": "^1.0.1",
     "dayjs": "^1.11.10",
     "eslint": "8.48.0",
-    "eslint-config-next": "14.0.2",
+    "eslint-config-next": "14.2.18",
     "filepond": "^4.30.6",
     "framer-motion": "^10.16.4",
     "fs": "^0.0.1-security",
